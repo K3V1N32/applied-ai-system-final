@@ -1,33 +1,53 @@
 # 🎵 Music Recommender Simulation
 
+## Music Recommender Plan
+
+This is where my main plan is located: [Plan.md](/plan.md)
+
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
+In this project, together with Claude AI, I built a music recommender system that:
 
-Your goal is to:
+- Represents songs, and userProfiles as data
+- Designed scoring and ranking rules that turns that data into recommendations
+- Give rankings and reasonings for each ranking.
 
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-Replace this paragraph with your own summary of what your version does.
+I also evaluated what my system is good at vs what it gets wrong, and reflect on how this mirros real world AI recommendations.
 
 ---
 
 ## How The System Works
 
-Explain your design in plain language.
+### Music Recommendation Systems
 
-Some prompts to answer:
+After having Claude research how spotify and youtube rank songs and make recommendations, the most popular approach is mixing more than one style, such as weighing both content-based, and collaborative filtering into the algorithms. For this small dataset in the project, we do not have much access to collaborative data such as similar profiles or users to match data to, so our best bet is to use the content-based rules and figure out how each data point should weigh in on the score we give to rank different songs for our profiles.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+**Scoring a song**:
+  - 0.30 weight for genre -> Genre matching is the most important factor, it plays the biggest role in the 'vibe' of a song.
+  - 0.25 weight for mood -> Mood is the next most important, as the next step in matching the 'vibe' of the profile and it lets genre + mood outweigh energy/valence since we have a smaller dataset to work with.
+  - 0.20 weight for energy -> Energy and valence both play an equal part in ranking a song, and together can outweigh genre when both match, letting a user experience a new genre, while matching the 'vibe' of energy vs emotion.
+  - 0.20 weight for valence ^
+  - 0.05 weight for acousticness -> Acousticness can matter in the 'vibe' of a song, so I wanted it to at least have a small part in the wight of scoring.
 
-You can include a simple diagram or bullet list if helpful.
+**And the profiles will look like this**:
+
+*profile_name = Intense Rock*
+- favorite_genre = rock
+- favorite_moods = intense
+- energy_target = 1.0
+- valence_target = 0.50
+- likes_acoustic = false
+
+*profile_name = Chill Lofi*
+- favorite_genre = lofi
+- favorite_mood = chill
+- energy_target = 0.50
+- valence_target = 0.50
+- likes_acoustic = true
+
+Songs will have genre, mood, energy, valence, and acoustic attributes
+
+userProfiles will have favorite_genre, favorite_mood, target_energy, target_valence, and likes_acoustics attributes.
 
 ---
 
@@ -95,15 +115,11 @@ Use this section to document the experiments you ran. For example:
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+Limitations of my recommender:
 
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+- It only works on smaller datasets, given a larger sample it will recommend songs of only a single genre or mood, given that those are what it weighs heaviest.
+- It does not understand lyrics, true vibe or language, it will easily recommend spanish or foreign origin songs over native language if the genre or mood is right.
+- It might recommend 3-4 of the same genre song over a diverse list of genres, making it feel stale for many users.
 
 ---
 

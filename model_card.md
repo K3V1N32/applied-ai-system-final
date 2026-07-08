@@ -2,8 +2,7 @@
 
 ## 1. Model Name  
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
+**VibeRender 3000**
 
 ---
 
