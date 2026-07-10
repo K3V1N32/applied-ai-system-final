@@ -73,7 +73,7 @@ def format_recommendation(recommendations: list[tuple], profile_name: str) -> st
     """
     for rec in recommendations:
         song, score, explanation = rec
-        result += f"\n{song['title']} - Score: {score:.2f}\n"
+        result += f"\n{song.title} - Score: {score:.2f}\n"
         result += f"Selection Reasoning:\n"
         for reason in explanation.split("; "):
             result += f"  - {reason}\n"
