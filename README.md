@@ -91,15 +91,194 @@ You can add more tests in `tests/test_recommender.py`.
 Paste a sample of your recommender's output here as a text block so a reader can see what it produces:
 
 ```
-# e.g.:
-# User profile: genre=indie, mood=chill, energy=low
-# Recommendations:
-#   1. ...
-#   2. ...
-#   3. ...
-```
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
+          #####################################
+          #   Music Recommender Simulation    #
+          #####################################
+        
+> Loaded 20 songs from the dataset.
+
+    #####################################
+    #   Intense Rock Recommendations  #
+    #####################################
+    
+Storm Runner - Score: 0.94
+Selection Reasoning:
+  - matches your favorite genre (rock)
+  - matches your favorite mood (intense)
+  - energy closely matches
+  - leans electronic, matching your preference
+
+Gym Hero - Score: 0.58
+Selection Reasoning:
+  - matches your favorite mood (intense)
+  - energy closely matches
+  - leans electronic, matching your preference
+
+Neon Rebellion - Score: 0.43
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+Static Funeral - Score: 0.42
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+Broken Mirror - Score: 0.36
+Selection Reasoning:
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+
+    #####################################
+    #   Chill Lofi Recommendations  #
+    #####################################
+    
+Library Rain - Score: 0.96
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - matches your favorite mood (chill)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Midnight Coding - Score: 0.95
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - matches your favorite mood (chill)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Focus Flow - Score: 0.70
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Spacewalk Thoughts - Score: 0.66
+Selection Reasoning:
+  - matches your favorite mood (chill)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Marble Halls - Score: 0.42
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+
+    #####################################
+    #   Angry Metal Recommendations  #
+    #####################################
+    
+Neon Rebellion - Score: 0.94
+Selection Reasoning:
+  - matches your favorite genre (metal)
+  - matches your favorite mood (angry)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+Static Funeral - Score: 0.71
+Selection Reasoning:
+  - matches your favorite genre (metal)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+Broken Mirror - Score: 0.37
+Selection Reasoning:
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+Night Drive Loop - Score: 0.35
+Selection Reasoning:
+  - energy closely matches
+  - leans electronic, matching your preference
+
+Storm Runner - Score: 0.35
+Selection Reasoning:
+  - energy closely matches
+  - leans electronic, matching your preference
+
+
+    #####################################
+    #   Happy Pop Recommendations  #
+    #####################################
+    
+Sunrise City - Score: 0.95
+Selection Reasoning:
+  - matches your favorite genre (pop)
+  - matches your favorite mood (happy)
+  - energy closely matches
+  - emotional tone closely matches
+
+Gym Hero - Score: 0.67
+Selection Reasoning:
+  - matches your favorite genre (pop)
+  - energy closely matches
+  - emotional tone closely matches
+
+Rooftop Lights - Score: 0.66
+Selection Reasoning:
+  - matches your favorite mood (happy)
+  - energy closely matches
+  - emotional tone closely matches
+
+Golden Hour Drive - Score: 0.63
+Selection Reasoning:
+  - matches your favorite mood (happy)
+  - energy closely matches
+  - emotional tone closely matches
+
+Barnyard Stomp - Score: 0.40
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+
+    #####################################
+    #   Moody Synthwave Recommendations  #
+    #####################################
+    
+Night Drive Loop - Score: 0.94
+Selection Reasoning:
+  - matches your favorite genre (synthwave)
+  - matches your favorite mood (moody)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+Broken Mirror - Score: 0.38
+Selection Reasoning:
+  - energy closely matches
+  - leans electronic, matching your preference
+
+Storm Runner - Score: 0.37
+Selection Reasoning:
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+Glacier Hum - Score: 0.36
+Selection Reasoning:
+  - emotional tone closely matches
+  - leans electronic, matching your preference
+
+Midnight Coding - Score: 0.35
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+
+> Music Recommender Simulation completed.
+```
 
 ---
 
