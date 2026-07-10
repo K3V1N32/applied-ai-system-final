@@ -60,6 +60,38 @@ moody_synthwave = UserProfile(
     likes_acoustic=False,
 )
 
+###################################
+## Edge Case Profiles (Optional) ##
+###################################
+
+# Genre/Mood perfect match does not exist in the dataset, max possible score available is 0.75 without a perfect mood/genre match.
+angry_classical = UserProfile(
+    favorite_genre="classical",
+    favorite_mood="angry",
+    target_energy=0.5,
+    target_valence=0.5,
+    likes_acoustic=True,
+)
+
+# The next 2 profiles demonstrate that even though the acoustic weight is only 5% of the score, it can still effect the list of recommendations.
+# acoustic chill's 5th recommendation will be a Velvet Ballad, with a 0.38 score, due to the energy being close
+# but electronic chill's 5th recommendation will be Night Drive Loop, with a 0.39 score, due to the electronic preference
+acoustic_chill = UserProfile(
+    favorite_genre="lofi",
+    favorite_mood="chill",
+    target_energy=0.5,
+    target_valence=0.5,
+    likes_acoustic=True,
+)
+
+electronic_chill = UserProfile(
+    favorite_genre="lofi",
+    favorite_mood="chill",
+    target_energy=0.5,
+    target_valence=0.5,
+    likes_acoustic=False,
+)
+
 #################################
 ##   format_recommendation     ##
 #################################
@@ -67,9 +99,9 @@ moody_synthwave = UserProfile(
 def format_recommendation(recommendations: list[tuple], profile_name: str) -> str:
     result = ""
     result += f"""
-    #####################################
-    #   {profile_name} Recommendations  #
-    #####################################
+    ######################################################
+           {profile_name} Recommendations
+    ######################################################
     """
     for rec in recommendations:
         song, score, explanation = rec
@@ -105,6 +137,9 @@ def main() -> None:
 
     print("> Music Recommender Simulation completed.")
 
+    print(format_recommendation(recommend_songs(angry_classical, songs, k=5), "Angry Classical (Edge-Case)"))
+    print(format_recommendation(recommend_songs(acoustic_chill, songs, k=5), "Acoustic Chill (Edge-Case)"))
+    print(format_recommendation(recommend_songs(electronic_chill, songs, k=5), "Electronic Chill (Edge-Case)"))
 
 if __name__ == "__main__":
     main()

@@ -31,6 +31,12 @@ class UserProfile:
     target_valence: float
     likes_acoustic: bool
 
+    def __post_init__(self):
+        if not 0.0 <= self.target_energy <= 1.0:
+            raise ValueError(f"target_energy must be between 0 and 1, got {self.target_energy}")
+        if not 0.0 <= self.target_valence <= 1.0:
+            raise ValueError(f"target_valence must be between 0 and 1, got {self.target_valence}")
+
 class Recommender:
     """
     OOP implementation of the recommendation logic.
@@ -75,8 +81,8 @@ def score_song(user_prefs: UserProfile, song: Song) -> Tuple[float, List[str]]:
     Scores a single song against user preferences.
     Required by recommend_songs() and src/main.py
     """
-    genre_score = 1.0 if song.genre == user_prefs.favorite_genre else 0.0
-    mood_score = 1.0 if song.mood == user_prefs.favorite_mood else 0.0
+    genre_score = 1.0 if song.genre.lower() == user_prefs.favorite_genre.lower() else 0.0
+    mood_score = 1.0 if song.mood.lower() == user_prefs.favorite_mood.lower() else 0.0
     energy_score = 1.0 - abs(song.energy - user_prefs.target_energy)
     valence_score = 1.0 - abs(song.valence - user_prefs.target_valence)
     acoustic_score = (

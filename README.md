@@ -90,7 +90,7 @@ You can add more tests in `tests/test_recommender.py`.
 
 Paste a sample of your recommender's output here as a text block so a reader can see what it produces:
 
-```
+```Bash
 
           #####################################
           #   Music Recommender Simulation    #
@@ -278,6 +278,116 @@ Selection Reasoning:
   - emotional tone closely matches
 
 > Music Recommender Simulation completed.
+```
+
+**Edge-Case Tests**:
+```Bash
+
+    ######################################################
+           Angry Classical (Edge-Case) Recommendations
+    ######################################################
+    
+Marble Halls - Score: 0.68
+Selection Reasoning:
+  - matches your favorite genre (classical)
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Neon Rebellion - Score: 0.51
+Selection Reasoning:
+  - matches your favorite mood (angry)
+
+Midnight Coding - Score: 0.41
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Focus Flow - Score: 0.40
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Library Rain - Score: 0.39
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+
+    ######################################################
+           Acoustic Chill (Edge-Case) Recommendations
+    ######################################################
+    
+Midnight Coding - Score: 0.96
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - matches your favorite mood (chill)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Library Rain - Score: 0.94
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - matches your favorite mood (chill)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Focus Flow - Score: 0.70
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - energy closely matches
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Spacewalk Thoughts - Score: 0.62
+Selection Reasoning:
+  - matches your favorite mood (chill)
+  - emotional tone closely matches
+  - leans acoustic, matching your preference
+
+Velvet Ballad - Score: 0.38
+Selection Reasoning:
+  - energy closely matches
+  - emotional tone closely matches
+
+
+    ######################################################
+           Electronic Chill (Edge-Case) Recommendations
+    ######################################################
+    
+Midnight Coding - Score: 0.94
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - matches your favorite mood (chill)
+  - energy closely matches
+  - emotional tone closely matches
+
+Library Rain - Score: 0.91
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - matches your favorite mood (chill)
+  - energy closely matches
+  - emotional tone closely matches
+
+Focus Flow - Score: 0.67
+Selection Reasoning:
+  - matches your favorite genre (lofi)
+  - energy closely matches
+  - emotional tone closely matches
+
+Spacewalk Thoughts - Score: 0.58
+Selection Reasoning:
+  - matches your favorite mood (chill)
+  - emotional tone closely matches
+
+Night Drive Loop - Score: 0.39
+Selection Reasoning:
+  - emotional tone closely matches
+  - leans electronic, matching your preference
 ```
 
 ---
