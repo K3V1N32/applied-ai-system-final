@@ -392,13 +392,41 @@ Selection Reasoning:
 
 ---
 
-## Experiments You Tried
+## Experiments
 
-Use this section to document the experiments you ran. For example:
+For the first experiment, I halved the genre weight, and doubled the energy weight:
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+**Comparison Table**
+
+| Profile | #1 pick | Changes further down the list |
+|:--------|:--------|:------------------------------|
+| Intense Rock | unchanged (Storm Runner)	| Warehouse Pulse (energy 0.89) bumps out Broken Mirror at #5 |
+| Chill Lofi | unchanged (Library Rain) |	Spacewalk Thoughts (low energy 0.28, close to target 0.3) jumps ahead of Focus Flow |
+| Angry Metal	| unchanged (Neon Rebellion) | Night Drive Loop and Concrete Kingdom (hip hop, energy 0.80) push out Broken Mirror — a genre-mismatched song now cracks top 5 |
+| Happy Pop |	unchanged (Sunrise City) | Rooftop Lights and Golden Hour Drive (both indie pop, high energy) leapfrog Gym Hero |
+| Moody Synthwave |	unchanged (Night Drive Loop) | Velvet Ballad and Concrete Kingdom (both genre-mismatched) enter top 5, pushing out Glacier Hum |
+
+  - **Key takeaways**:
+  - The #1 recommendation never changes — for every profile the top pick already had a strong genre match and a close energy match, so it dominates either way.
+  - The effect shows up in the #3–#5 slots: songs with the right genre but so-so energy match start losing ground to songs with the wrong genre but energy very close to target.
+  - Most strikingly, "Concrete Kingdom" (hip hop, confident) shows up in both Angry Metal's and Moody Synthwave's top 5 under the new weights — it has no genre/mood match at all, but its energy (0.80) is close enough to both targets that the doubled energy weight alone earns it a spot. That's a case where the recommender starts surfacing genre-mismatched songs, which may or may not be desirable depending on what "good recommendation" means for this app.
+
+For the second experiment, I removed mood entirely, and relied heavily on valence to score songs, giving valence 0.45 weight:
+
+**Comparison Table**
+
+| Profile | #1 pick | Changes further down the list |
+|:--------|:--------|:------------------------------|
+| Intense Rock | unchanged (Storm Runner) | Rest of the list reshuffles heavily — Gym Hero (mood match "intense") drops out of top 5 entirely since mood no longer counts; Broken Mirror and Night Drive Loop rise on valence proximity to the low target (0.2) |
+| Chill Lofi | unchanged | Focus Flow jumps from #3 (0.70) to essentially tied for #1 (0.93) — its valence (0.59) is very close to target (0.5), and losing mood weight cost it nothing since it was already a mood mismatch that got dragged down |
+| Angry Metal	| flips: Static Funeral overtakes Neon Rebellion | Both are genre="metal" matches, so this is decided purely by valence: Static Funeral's valence (0.15) is closer to the target (0.1) than Neon Rebellion's (0.22) — mood weight was previously masking this |
+| Happy Pop | unchanged	| Gym Hero rockets from #2 (0.67) to #2 (0.91) — despite mood="intense" (a mismatch), its valence (0.77) is close to target (0.8) |
+| Moody Synthwave	| unchanged |	Glacier Hum and Broken Mirror swap ranks based on valence closeness alone |
+
+
+  - **Key takeaway**: this is a much bigger structural change than the genre/energy experiment — it actually flips a #1 recommendation (Angry Metal: Neon Rebellion → Static Funeral). Since genre score is often a tie (many songs share a genre with only one mood variant, or ties happen among same-genre songs), removing mood as a tiebreaker hands that decision entirely to valence proximity. The pattern across all 5 profiles: songs with the wrong mood but right valence now consistently outrank songs that used to win on mood alone — the recommender effectively stops caring about labeled mood tags and starts trusting the numeric emotional-tone value instead.
+
+For the most part, my system prioritizes a users favorite genre and mood, and uses energy, valence, and acousticness as tie breakers and to give more variance to suggestions. It will always give the same list to the same user everytime they run the recommender, there is no variance in the weights or even something like a similar genres matcher to give more options to a user in its current state.
 
 ---
 
@@ -414,14 +442,8 @@ Limitations of my recommender:
 
 ## Reflection
 
-Read and complete `model_card.md`:
-
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+Building this recommender showed me that "prediction" here is really just weighted similarity scoring dressed up in a friendlier name - every song gets reduced to five numbers (genre match, mood match, energy distance, valence distance, acoustic fit), each multiplied by a fixed weight, and summed into a single 0-1 score. There's no learning happening; the model doesn't discover that genre matters more than acoustics, I decided that by setting genre to 0.30 and acoustic to 0.05. My weight experiments made this obvious: doubling the energy weight and halving genre didn't change any #1 pick, but it let genre-mismatched songs like "Concrete Kingdom" crack the top 5 purely on energy proximity, and dropping mood in favor of valence actually flipped a #1 recommendation (Angry Metal). The "prediction" is entirely a function of which knobs the designer chose to turn up - the data doesn't push back.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-
-
-
+That's also where I think bias shows up most clearly. Because the system has no sense of lyrics, language, or cultural context, it will happily rank a foreign-language song above a native-language one as long as the genre and mood tags match - it's optimizing for labeled similarity, not for what the song actually communicates to a listener. The same blind spot shows up with dataset size: on a small catalog the recommender feels reasonably balanced, but I noted in the Limitations section that a larger dataset would let it collapse into recommending almost exclusively one dominant genre or mood, since those are the two heaviest-weighted features. In other words, the system doesn't just reflect bias in the data, it actively amplifies whatever genre or mood is already overrepresented, and a real-world version of this would need either more nuanced signals (lyrics, cultural context) or deliberate diversity constraints to keep it from flattening user taste into whatever the majority of the catalog looks like.

@@ -121,7 +121,7 @@ def main() -> None:
     print(
         """
           #####################################
-          #   Music Recommender Simulation    #
+          #     Starting VibeRender 3000      #
           #####################################
         """
     )
