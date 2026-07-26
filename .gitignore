@@ -7,6 +7,12 @@ __pycache__/
 .venv/
 env/
 venv/
+.env
+
+# Copyrighted dataset
+data/spotify_dataset.csv
+data/songs_working.csv
+data/embeddings_cache.npz
 
 # OS files
 .DS_Store
