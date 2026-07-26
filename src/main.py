@@ -1,145 +1,50 @@
 """
-Command line runner for the Music Recommender Simulation.
+Command-line demo for the Music Recommender.
 
-This file helps you quickly run and test your recommender.
-
-You will implement the functions in recommender.py:
-- load_songs
-- score_song
-- recommend_songs
+Runs the same pipeline as src/app.py (semantic search -> Gemini explanation)
+without the Streamlit UI: prompts for a free-text query and prints the
+AI DJ's picks with reasoning.
 """
+import os
 
-from recommender import load_songs, recommend_songs, UserProfile
+from recommender import load_songs
+from embeddings import get_or_build_embeddings, semantic_search
+from gemini_dj import get_ai_recommendations
 
-#####################################
-##        Sample Profiles          ##
-#####################################
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+SONGS_PATH = os.path.join(APP_DIR, "..", "data", "songs_working.csv")
 
-## Intense Rock ##
-intense_rock = UserProfile(
-    favorite_genre="rock",
-    favorite_mood="intense",
-    target_energy=0.9,
-    target_valence=0.2,
-    likes_acoustic=False,
-)
-
-## Chill Lofi ##
-chill_lofi = UserProfile(
-    favorite_genre="lofi",
-    favorite_mood="chill",
-    target_energy=0.3,
-    target_valence=0.5,
-    likes_acoustic=True,
-)
-
-##  Angry metal ##
-angry_metal = UserProfile(
-    favorite_genre="metal",
-    favorite_mood="angry",
-    target_energy=0.8,
-    target_valence=0.1,
-    likes_acoustic=False,
-)
-
-## Happy pop ##
-happy_pop = UserProfile(
-    favorite_genre="pop",
-    favorite_mood="happy",
-    target_energy=0.8,
-    target_valence=0.8,
-    likes_acoustic=True,
-)
-
-## Moody Synthwave ##
-moody_synthwave = UserProfile(
-    favorite_genre="synthwave",
-    favorite_mood="moody",
-    target_energy=0.6,
-    target_valence=0.4,
-    likes_acoustic=False,
-)
-
-###################################
-## Edge Case Profiles (Optional) ##
-###################################
-
-# Genre/Mood perfect match does not exist in the dataset, max possible score available is 0.75 without a perfect mood/genre match.
-angry_classical = UserProfile(
-    favorite_genre="classical",
-    favorite_mood="angry",
-    target_energy=0.5,
-    target_valence=0.5,
-    likes_acoustic=True,
-)
-
-# The next 2 profiles demonstrate that even though the acoustic weight is only 5% of the score, it can still effect the list of recommendations.
-# acoustic chill's 5th recommendation will be a Velvet Ballad, with a 0.38 score, due to the energy being close
-# but electronic chill's 5th recommendation will be Night Drive Loop, with a 0.39 score, due to the electronic preference
-acoustic_chill = UserProfile(
-    favorite_genre="lofi",
-    favorite_mood="chill",
-    target_energy=0.5,
-    target_valence=0.5,
-    likes_acoustic=True,
-)
-
-electronic_chill = UserProfile(
-    favorite_genre="lofi",
-    favorite_mood="chill",
-    target_energy=0.5,
-    target_valence=0.5,
-    likes_acoustic=False,
-)
-
-#################################
-##   format_recommendation     ##
-#################################
-
-def format_recommendation(recommendations: list[tuple], profile_name: str) -> str:
-    result = ""
-    result += f"""
-    ######################################################
-           {profile_name} Recommendations
-    ######################################################
-    """
-    for rec in recommendations:
-        song, score, explanation = rec
-        result += f"\n{song.title} - Score: {score:.2f}\n"
-        result += f"Selection Reasoning:\n"
-        for reason in explanation.split("; "):
-            result += f"  - {reason}\n"
-    return result
+CANDIDATE_POOL_SIZE = 20
+NUM_RECOMMENDATIONS = 5
 
 
 def main() -> None:
-    songs = load_songs("../data/songs.csv")
-    # Added validation that songs are loaded, along with a print statement to show the number of songs loaded.
-    if not songs:
-        print("Error: No songs loaded.")
+    print("Welcome to the VectorVibe command-line demo!")
+    query = input("What kind of music would you like me to recommend? ").strip()
+    if not query:
+        print("You didn't enter anything -- nothing to recommend.")
         return
-    print(
-        """
-          #####################################
-          #     Starting VibeRender 3000      #
-          #####################################
-        """
-    )
-    print(f"> Loaded {len(songs)} songs from the dataset.")
 
-    ## Profile Testing ##
-    
-    print(format_recommendation(recommend_songs(intense_rock, songs, k=5), "Intense Rock"))
-    print(format_recommendation(recommend_songs(chill_lofi, songs, k=5), "Chill Lofi"))
-    print(format_recommendation(recommend_songs(angry_metal, songs, k=5), "Angry Metal"))
-    print(format_recommendation(recommend_songs(happy_pop, songs, k=5), "Happy Pop"))
-    print(format_recommendation(recommend_songs(moody_synthwave, songs, k=5), "Moody Synthwave"))
+    songs = load_songs(SONGS_PATH)
+    print(f"Loaded {len(songs)} songs.")
 
-    print("> Music Recommender Simulation completed.")
+    print("Searching and asking your AI DJ...")
+    song_ids, vectors = get_or_build_embeddings(songs)
+    candidates = semantic_search(query, songs, song_ids, vectors, k=CANDIDATE_POOL_SIZE)
+    recommendations = get_ai_recommendations(query, candidates, k=NUM_RECOMMENDATIONS)
 
-    print(format_recommendation(recommend_songs(angry_classical, songs, k=5), "Angry Classical (Edge-Case)"))
-    print(format_recommendation(recommend_songs(acoustic_chill, songs, k=5), "Acoustic Chill (Edge-Case)"))
-    print(format_recommendation(recommend_songs(electronic_chill, songs, k=5), "Electronic Chill (Edge-Case)"))
+    if not recommendations:
+        print("No recommendations found for that query -- try describing it differently.")
+        return
+
+    print(f'\nRecommendations for: "{query}"\n')
+    for rec in recommendations:
+        song = rec["song"]
+        source = "AI DJ (Gemini)" if rec["source"] == "gemini" else "closest match (AI DJ unavailable)"
+        print(f"{song.title} - {song.artist}  [{source}]")
+        print(f"  {rec['reasoning']}")
+        print(f"  Genre: {song.genre} | Mood: {song.mood} | Popularity: {song.popularity}\n")
+
 
 if __name__ == "__main__":
     main()

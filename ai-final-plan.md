@@ -113,6 +113,108 @@ Streamlit UI displays picks + reasoning
 
 Total: ~5.2 hours, leaving slack inside the 5-6 hour budget. If time gets tight, cut in this order: docs polish (8) → test breadth (7) → Gemini prompt refinement (5) → UI polish (6). Don't cut the embedding cache (4) or the fallback path (5) — those are what keep a live demo from breaking.
 
+### Addendum: project structure review
+
+Reviewed before starting the Mermaid diagram / docs work. Flat `src/` (no subpackages) confirmed as the right call at this size (6 modules, no circular deps, matches the flat import style already in use and `pytest.ini`'s `pythonpath`). `scripts/` vs `src/` split confirmed sound (one-time CLI utilities vs. the actual application).
+
+Two changes made:
+- **Removed `data/songs.csv`** -- the old 20-song toy dataset, orphaned once `main.py` stopped using it. Nothing else referenced it (confirmed via grep before deleting).
+- **`src/main.py` rewritten as a CLI demo** of the new pipeline (query -> semantic search -> Gemini explanation, printed to terminal) instead of being deleted -- it was broken (still imported the removed `UserProfile`/`recommend_songs`). Gives a second, lighter-weight way to demonstrate the system besides Streamlit, satisfying the "working script or UI" rubric bullet two ways instead of one. Verified it runs end-to-end.
+
+Also noted: root-level `README.md`, `model_card.md`, and `ai_interactions.md` are the expected homes for Phase 8's docs -- git history shows the old versions of exactly these three were moved to `assets/old_music_recommender/old_*.md`, establishing where the new ones belong.
+
 ### Addendum: Deezer preview playback
 
 Added after Phase 6: each recommendation card embeds a 30-second audio preview via Deezer's public search API (`src/deezer_previews.py`), no API key required. Looked up by artist+title at display time via `st.audio()`. Not cached to disk -- Deezer's preview URLs are signed links that expire in ~15 minutes, so only a short-TTL in-session cache is used (`st.cache_data(ttl=600)`), separate from the permanent on-disk caches used elsewhere in the pipeline.
+
+## RAG Explanation
+
+
+## Grading rubric for making a checklist:
+3pts	Clear Identification of the Base Project and Its Original Scope
+1	Student identifies the original project they are extending.
+1	Student provides a short description of the original system's goal and capabilities.
+1	Description is accurate and sets clear context for extensions.
+3pts	Substantial New AI Feature Added (RAG, Agent, Specialization, or Reliability Mechanism)
+1	Student adds at least one substantial AI feature such as RAG, a multi-step agent or planning workflow, specialized behavior (mini fine-tune or structured prompting), or a reliability harness (evaluation loop, guardrails, self-checking).
+1	Feature is integrated into the working system (not an isolated demo).
+1	Feature is functional and produces meaningful changes in system behavior.
+3pts	System Architecture Diagram
+1	Architecture diagram is submitted as a Mermaid source file (.mmd or embedded in a .md file); a PNG image alone is not sufficient.
+1	Diagram clearly illustrates data flow (input → processing steps → output).
+1	Diagram matches actual project implementation (not theoretical).
+3pts	Functional End-to-End System Demonstration
+1	Student provides a working script or UI that demonstrates full system workflow.
+1	README includes example commands and sample outputs in code blocks showing the system running end-to-end.
+1	System responds consistently to at least 2-3 example inputs.
+3pts	Reliability, Evaluation, or Guardrail Component
+1	System includes a reliability mechanism such as input validation, output guardrails, self-critique or multi-model agreement, or an evaluation script that tests sample inputs.
+1	Mechanism is functional and meaningfully improves reliability.
+1	Student provides examples in markdown format (showing input, behavior, and result) demonstrating how the guardrail or evaluator behaves.
+3pts	Documentation: README and Setup Instructions
+1	README clearly explains project goals and new features.
+1	README contains step-by-step instructions to install, run, and test the system.
+1	README includes sample input/output illustrating system behavior.
+3pts	Reflection on AI Collaboration and System Design
+1	Student explains how they used AI during development (prompting, debugging, design).
+1	Student identifies at least one helpful and one flawed AI suggestion.
+1	Student reflects on system limitations and future improvements.
+
+## Rubric Checklist
+
+Assessed against the implementation as it stands after Phase 7 (tests). Re-check after Phase 8.
+
+### Clear Identification of the Base Project and Its Original Scope — 0/3
+- [ ] Identify the original project being extended
+- [ ] Short description of the original system's goal and capabilities
+- [ ] Description is accurate and sets context for the extension
+
+Not started. The original rule-based "VibeRender 3000" (genre/mood/energy/valence sliders, `score_song`) is fully documented in `assets/old_music_recommender/old_model_card.md`, but nothing in the current docs references it yet -- README.md is empty and there's no current model card. Needs pulling into Phase 8.
+
+### Substantial New AI Feature Added (RAG) — 3/3 ✅
+- [x] Adds a substantial AI feature -- RAG: local semantic-search retrieval + Gemini generation
+- [x] Integrated into the working system, not an isolated demo (it's the entire flow in `src/app.py`, not a side script)
+- [x] Functional and produces meaningful behavior change (verified live in browser; produces genuinely different, query-driven results vs. the old fixed-slider system)
+
+Done.
+
+### System Architecture Diagram — 3/3 ✅
+- [x] Submitted as Mermaid source (`diagrams/architecture.mmd`; rendered PNG also saved to `assets/images/architecture.png` for easy viewing)
+- [x] Clearly illustrates data flow (offline prep/embedding subgraph -> runtime query subgraph, including the guardrail/fallback branch)
+- [x] Matches actual implementation -- real function names (`build_song_text`, `semantic_search`, `get_ai_recommendations`, `find_preview_url`), real file paths, real model name (`gemini-flash-lite-latest`)
+
+Done. Rendered locally with `mermaid-cli` (`npx @mermaid-js/mermaid-cli`) to confirm it actually parses and displays correctly before calling it finished, not just that the syntax looked plausible.
+
+### Functional End-to-End System Demonstration — 1/3
+- [x] Working script *and* UI demonstrating the full workflow (`src/app.py` Streamlit UI, verified live in a real browser; `src/main.py` CLI demo of the same pipeline, verified end-to-end from the terminal)
+- [ ] README includes example commands and sample outputs in code blocks
+- [ ] System responds consistently to 2-3 example inputs, documented
+
+The system itself works, two ways, and was verified against several distinct queries during development ("high energy dance songs," "sad acoustic songs for a rainy day," "hip hop songs good for a workout," "chill study music"). None of that is written down anywhere yet -- `README.md` is currently empty.
+
+### Reliability, Evaluation, or Guardrail Component — 2/3
+- [x] Includes a reliability mechanism: Gemini API-failure fallback (`gemini_dj.py`) + hallucinated-pick guardrail (drops any song ID in Gemini's response that isn't in the retrieved candidate set) + input validation in the UI (empty-query warning)
+- [x] Mechanism is functional and meaningfully improves reliability, covered by `tests/test_gemini_dj.py` -- including the mixed valid/hallucinated-pick case, which proves a single bad ID gets dropped rather than triggering a full fallback
+- [ ] Examples in markdown format showing input/behavior/result
+
+The mechanism is built and tested; it just hasn't been written up as a markdown example anywhere yet.
+
+### Documentation: README and Setup Instructions — 0/3
+- [ ] README explains project goals and new features
+- [ ] Step-by-step install/run/test instructions
+- [ ] Sample input/output
+
+Not started. `README.md` is currently empty.
+
+### Reflection on AI Collaboration and System Design — 0/3
+- [ ] Explains how AI was used during development
+- [ ] Identifies at least one helpful and one flawed AI suggestion
+- [ ] Reflects on limitations and future improvements
+
+Not written yet, but there's concrete material from this session to draw on:
+- **Flawed AI suggestions that had to be caught and corrected:** assumed `gemini-2.5-flash-lite` would still be available to a new API key (it wasn't -- caught by live testing, not by reasoning ahead of time); assumed the Gemini embedding free tier was rate-limited only per-minute (there's also an undocumented 1,000/day cap, which killed a background embedding job at 900/2,500 songs); an early Gemini explanation prompt included mismatched candidates with "this doesn't fit" reasoning instead of just excluding them.
+- **Helpful AI contributions:** the RAG architecture itself, the checkpointed/resumable embedding cache design, genre-bucketed + popularity-capped dataset sampling (avoiding a single genre dominating the working subset), and the hallucination guardrail + its test.
+
+---
+
+**Overall: 9 of 21 rubric sub-items currently satisfied.** The hard engineering -- the AI feature itself, the guardrail mechanism, and now the architecture diagram -- is done. Everything still missing is writing: base-project framing, guardrail markdown examples, the README itself, and the AI-collaboration reflection.

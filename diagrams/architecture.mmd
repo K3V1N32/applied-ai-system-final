@@ -1,0 +1,31 @@
+flowchart TD
+    subgraph OFFLINE["Offline data pipeline (run once)"]
+        A["Kaggle 900k-Spotify CSV<br/>data/spotify_dataset.csv<br/>(external download, gitignored)"]
+        B["scripts/prepare_dataset.py<br/>filter, dedupe, genre-bucket +<br/>popularity-cap sample"]
+        C[("data/songs_working.csv<br/>2,500 songs, gitignored")]
+        D["scripts/build_embeddings.py<br/>recommender.build_song_text() +<br/>embeddings.embed_texts()<br/>(local sentence-transformers)"]
+        E[("data/embeddings_cache.npz<br/>gitignored")]
+        A --> B --> C --> D --> E
+    end
+
+    subgraph RUNTIME["Runtime query (src/app.py Streamlit UI, or src/main.py CLI)"]
+        F["User types free-text query<br/>e.g. 'high energy dance songs'"]
+        G["embeddings.semantic_search()<br/>embed query locally, cosine similarity"]
+        H["Top ~20 candidates by similarity"]
+        I["gemini_dj.get_ai_recommendations()<br/>prompt: candidates + query -&gt; gemini-flash-lite-latest"]
+        J{"Valid JSON picks,<br/>all song_ids in candidate set?"}
+        K["Gemini's picks + reasoning<br/>(source: gemini)"]
+        L["Fallback: top candidates by<br/>raw similarity score<br/>(source: fallback)"]
+        M["deezer_previews.find_preview_url()<br/>per recommended song"]
+        N["Output: title, artist, reasoning,<br/>genre/mood/popularity, source label,<br/>30s audio preview"]
+
+        F --> G --> H --> I --> J
+        J -->|yes| K
+        J -->|no / API error / malformed| L
+        K --> M
+        L --> M
+        M --> N
+    end
+
+    C -.->|load_songs| G
+    E -.->|get_or_build_embeddings| G

@@ -85,3 +85,22 @@ def test_get_ai_recommendations_falls_back_when_picks_reference_unknown_ids(monk
     results = gemini_dj.get_ai_recommendations("upbeat pop", candidates, k=5)
 
     assert results[0]["source"] == "fallback"
+
+
+def test_get_ai_recommendations_drops_hallucinated_id_without_falling_back(monkeypatch):
+    candidates = [(make_song(1, "Song A"), 0.9), (make_song(2, "Song B"), 0.7)]
+    monkeypatch.setattr(
+        gemini_dj, "client",
+        stub_client(response_text=json.dumps({"picks": [
+            {"song_id": 1, "reasoning": "a real candidate"},
+            {"song_id": 999, "reasoning": "a hallucinated id not in the candidate set"},
+        ]})),
+    )
+
+    results = gemini_dj.get_ai_recommendations("upbeat pop", candidates, k=5)
+
+    # the one valid pick should survive on its own merits, not trigger a full fallback
+    assert len(results) == 1
+    assert results[0]["song"].title == "Song A"
+    assert results[0]["source"] == "gemini"
+    assert all(rec["song"].id in {1, 2} for rec in results)
