@@ -1,6 +1,7 @@
 import logging
 import os
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Streamlit's dev-server file watcher walks every imported module to decide
 # what to watch, which trips transformers' lazy import of optional
@@ -20,6 +21,7 @@ DEFAULT_COVER_PATH = os.path.join(APP_DIR, "..", "assets", "images", "default_co
 
 CANDIDATE_POOL_SIZE = 20
 COVER_ART_WIDTH = 120
+PREVIEW_VOLUME = 0.5
 
 st.set_page_config(page_title="VectorVibe", page_icon="🎧")
 
@@ -37,6 +39,13 @@ def cached_track_media(artist: str, title: str):
     # that expire in ~15 minutes, so this cache must not outlive them.
     return find_track_media(artist, title)
 
+
+if not os.path.exists(SONGS_PATH):
+    st.error(
+        "Song data not found. Follow the setup steps in README.md -- download the "
+        "dataset and run `python3 scripts/prepare_dataset.py` -- before running this app."
+    )
+    st.stop()
 
 songs, song_ids, vectors = load_data()
 
@@ -85,5 +94,11 @@ if submitted and query.strip():
                     st.audio(media.preview_url)
                 else:
                     st.caption("No preview available for this track.")
+
+        components.html(
+            f"<script>window.parent.document.querySelectorAll('audio')"
+            f".forEach(a => a.volume = {PREVIEW_VOLUME});</script>",
+            height=0,
+        )
 elif submitted:
     st.warning("Type something first -- what kind of music are you in the mood for?")

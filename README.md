@@ -24,6 +24,10 @@ The main idea behind VectorVibe is to use streamlit UI, real song data, semantic
 
 VectorVibe runs in two phases. **Offline (run once):** `scripts/prepare_dataset.py` filters and samples the raw 500k+ song dataset down to a genre-balanced 2,500-song working set, and `scripts/build_embeddings.py` converts each song's genre, mood, energy/danceability/valence, and a lyric snippet into a vector using a local embedding model, caching the result to disk so it never needs to re-run.
 
+**Here is a screenshot of the 2D mood vector map from the 2500 songs that are embedded within VectorVibes dataset**
+
+![A 2D vector map of the top 3 moods from the 2500 songs embedded in VectorVibes dataset](assets/images/VectorMapMood.png)
+
 **At query time**, the user's free-text query (via the Streamlit UI or the CLI) is embedded the same way and compared against the cached vectors with cosine similarity, surfacing the ~20 closest songs. Those candidates -- not the full dataset -- are handed to Gemini, which picks the best matches and explains why each one fits. A guardrail then drops any pick Gemini returns that isn't actually in that candidate set, so a hallucinated song can never reach the user, and if the Gemini call fails outright, the system falls back to the raw similarity ranking instead of breaking. This retrieve-then-generate structure is what makes the system a genuine RAG pipeline: Gemini only ever explains songs that were actually retrieved, never ones it invents. Finally, Deezer's public API supplies each recommended song's cover art and 30-second preview before everything is displayed.
 
 ## Setup
@@ -81,11 +85,17 @@ streamlit run src/app.py   # web UI
 python3 src/main.py        # CLI demo
 ```
 
+Want to see what the embedding space actually looks like? `src/vector_map.py` projects the 2,500 cached song embeddings down to 2D (PCA or t-SNE) and plots them with matplotlib, colored by mood or genre:
 
+```Bash
+streamlit run src/vector_map.py
+```
 
-## Sample Interactions
-### Here are 3 seperate CLI executions of VectorVibe:
+## Reproducible Execution Interactions
+### Here are 3 seperate CLI executions of VectorVibe with inputs, outputs and Guardrail comments:
 Input: Songs for going to the beach
+
+CLI Output:
 ```Bash
 Welcome to the VectorVibe command-line demo!
 What kind of music would you like me to recommend? Songs for going to the beach
@@ -97,7 +107,7 @@ Loading weights: 100%|███████████████████�
 
 Recommendations for: "Songs for going to the beach"
 
-SURFIN' SAFARI - Ramones  [AI DJ (Gemini)]
+SURFIN' SAFARI - Ramones  [AI DJ (Gemini)] #Comment: This is where we show if Gemini picked the song, or if the basic semantic search data picked it.
   This song fits a beach theme perfectly with its title 'SURFIN' SAFARI' and high valence of 0.90 conveying pure joy.
   Genre: pop punk,punk,punk rock | Mood: joy | Popularity: 75
 
@@ -119,6 +129,8 @@ Maryland - Elephanz  [AI DJ (Gemini)]
 ```
 
 Input: Lofi Chill songs for when its thunderstorming
+
+CLI Output:
 ```Bash
 Welcome to the VectorVibe command-line demo!
 What kind of music would you like me to recommend? Lofi Chill songs for when its thunderstorming
@@ -152,6 +164,8 @@ Bad Attitudes - Øneheart  [AI DJ (Gemini)]
 ```
 
 Input: Country songs for a square dance
+
+CLI Output:
 ```Bash
 Welcome to the VectorVibe command-line demo!
 What kind of music would you like me to recommend? Country songs for a square dance
@@ -183,6 +197,43 @@ Pimplikeness - Morgan Wallen  [AI DJ (Gemini)]
   Featuring a country genre alongside high energy at 0.84 and danceability of 0.73, it provides a lively rhythm.
   Genre: country | Mood: anger | Popularity: 84
 ```
+Input: Country songs for driving
+
+This is an example of the reliability/fallback features being engaged forcefully by removing the gemini API KEY. The other guardrail example is the tests/test_gemini_dj.py showing exactly what happens if gemini hallucinates a song that wasn't sent.
+
+CLI Output:
+```Bash
+Welcome to the VectorVibe command-line demo!
+What kind of music would you like me to recommend? Country songs for driving
+Loaded 2500 songs.
+Searching and asking your AI DJ...
+Embedding cache is up to date (2500 songs).
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights: 100%|███████████████████████████████████████████| 103/103 [00:00<00:00, 8228.67it/s]
+Gemini explanation call failed, falling back to similarity ranking: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
+
+Recommendations for: "Country songs for driving"
+
+One Night Stand (Alternate Take) - Janis Joplin  [closest match (AI DJ unavailable)]
+  Closest semantic match to your query (similarity 0.58).
+  Genre: gospel,psychedelic rock,hard rock | Mood: sadness | Popularity: 71
+
+NCT 127 -  Road Trip English Translation - NewJeans  [closest match (AI DJ unavailable)]
+  Closest semantic match to your query (similarity 0.56).
+  Genre: k-pop | Mood: joy | Popularity: 80
+
+The Bottomless Hole - The Handsome Family  [closest match (AI DJ unavailable)]
+  Closest semantic match to your query (similarity 0.54).
+  Genre: alt-country | Mood: sadness | Popularity: 38
+
+Paradise - Future Palace  [closest match (AI DJ unavailable)]
+  Closest semantic match to your query (similarity 0.53).
+  Genre: alt-country | Mood: fear | Popularity: 47
+
+Bitter - Palace  [closest match (AI DJ unavailable)]
+  Closest semantic match to your query (similarity 0.51).
+  Genre: alt-country | Mood: anger | Popularity: 59
+```
 
 ## Design Decisions:
 The original project was very barebones, used made up data, and I had already had some ideas on making it more user-friendly and how to implement a larger/real song dataset. I originally planned on having the entire 500,000 real song dataset implemented in the semantic search, but upon further research and testing, it was a bit harder to work with such a large dataset in a project of this size. Since the data set is still relatively small as apposed to something like the entire spotify song collection, it's still not going to recommend the best songs for every search, but I believe after testing, that it does at least properly catagorize songs and matches what it has access to pretty well to the search query! So the biggest trade-off I made would be only importing 2,500 of the 500,000 song list, leading to less choices to apply to a given query and also with the time constraints of this project, I was not able to implement more search configuration, such as prefrences like acoustic vs electronic, or other specifics applied to the search.
@@ -190,7 +241,7 @@ The original project was very barebones, used made up data, and I had already ha
 ## Testing Summary:
 Initially I tried using a full 500,000 song dataset along with gemini embedding, however I soon found out that free versions of gemini have a quite low request per minute / request per day limit, and also that 500,000 songs is a lot more data than I initially thought. After some tests and questions to Claude, we settled on 2,500 songs spread accross 88 genres to get a decent sample size for embedding, and moved embedding to a local speciallized LLM that can embed the 2500 songs in under a minute. There is also a full pytest suite including testing the AI, the recommender, the embeddings, and even the deezer api interactions. The pytest suites also show off the guardrails put in place, in case Gemini hallucinates a song, the list of actual sent song ids is compared to the list gotten from gemini, and hallucinated songs or extra songs that were not asked for are removed from the list, so the user never sees fake songs.
 
-A run of the Gemini_DJ pytests
+A run of the Gemini_DJ pytests. This tests the Guardrails and Reliability measures put into place to make sure that VectorVibe does not give a user Hallucinated data, and keeps the results reliable.
 ```Bash
 ============================================ test session starts =============================================
 platform darwin -- Python 3.13.13, pytest-9.1.1, pluggy-1.6.0 -- /Users/ks3276/projects/CodePath/applied-ai-system-final/.venv/bin/python3.13

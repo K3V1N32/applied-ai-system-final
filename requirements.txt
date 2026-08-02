@@ -6,6 +6,8 @@ google-genai
 python-dotenv
 sentence-transformers
 requests
+scikit-learn
+matplotlib
 # Not imported directly -- lets Streamlit use OS-level file watching instead
 # of its polling fallback, which otherwise logs harmless but alarming-looking
 # ModuleNotFoundError tracebacks from transformers' optional torchvision imports.
