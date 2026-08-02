@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-import deezer_previews
+from ..src import deezer_previews
 
 
 def stub_get(data, raises=None):

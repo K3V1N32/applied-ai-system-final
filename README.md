@@ -1,15 +1,15 @@
 # \<VectorVibe\> - *Your AI DJ!*
-VecotrVibe is a full rework/refactor of the CodePath Music Recommender project from module 3 of AI110 Foundation of AI Engineering
+VectorVibe is a full rework/refactor of the CodePath Music Recommender project from module 3 of AI110 Foundation of AI Engineering
 
 ![Screenshot of VectorVibe UI](assets/images/streamlit_screenshot.png)
 
 ## Music Recommender - AI110 Project 3
-The original version of this project was CLI only. Its goal was to weigh song data from a 20 song made-up dataset against userProfiles to give recommendation through scoring and ranking rules using the close rankings as reasoning to help the user understand the recommendations.
+The original version of this project was CLI only. Its goal was to weigh song data from a 20 song made-up dataset against userProfiles to give recommendations through scoring and ranking rules using the close rankings as reasoning to help the user understand the recommendations.
 
 [View my original submission on github!](https://github.com/K3V1N32/ai110-module3show-musicrecommendersimulation-starter)
 
 ## What is VectorVibe and how is it different from the previous project?
-The main idea behind VectorVibe is to use streamlit UI, real song data, semantic search, and Retrieval Augmented Generation(RAG) with Gemini AI to massively updrade the useability and functionality of the music recommender.
+The main idea behind VectorVibe is to use streamlit UI, real song data, semantic search, and Retrieval Augmented Generation (RAG) with Gemini AI to massively upgrade the usability and functionality of the music recommender.
 
 **Major Changes**
 <br />| Original -> New version |
@@ -24,9 +24,9 @@ The main idea behind VectorVibe is to use streamlit UI, real song data, semantic
 
 VectorVibe runs in two phases. **Offline (run once):** `scripts/prepare_dataset.py` filters and samples the raw 500k+ song dataset down to a genre-balanced 2,500-song working set, and `scripts/build_embeddings.py` converts each song's genre, mood, energy/danceability/valence, and a lyric snippet into a vector using a local embedding model, caching the result to disk so it never needs to re-run.
 
-**Here is a screenshot of the 2D mood vector map from the 2500 songs that are embedded within VectorVibes dataset**
+**Here is a screenshot of the 2D mood vector map from the 2500 songs that are embedded within VectorVibe's dataset**
 
-![A 2D vector map of the top 3 moods from the 2500 songs embedded in VectorVibes dataset](assets/images/VectorMapMood.png)
+![A 2D vector map of the top 3 moods from the 2500 songs embedded in VectorVibe's dataset](assets/images/VectorMapMood.png)
 
 **At query time**, the user's free-text query (via the Streamlit UI or the CLI) is embedded the same way and compared against the cached vectors with cosine similarity, surfacing the ~20 closest songs. Those candidates -- not the full dataset -- are handed to Gemini, which picks the best matches and explains why each one fits. A guardrail then drops any pick Gemini returns that isn't actually in that candidate set, so a hallucinated song can never reach the user, and if the Gemini call fails outright, the system falls back to the raw similarity ranking instead of breaking. This retrieve-then-generate structure is what makes the system a genuine RAG pipeline: Gemini only ever explains songs that were actually retrieved, never ones it invents. Finally, Deezer's public API supplies each recommended song's cover art and 30-second preview before everything is displayed.
 
@@ -92,7 +92,7 @@ streamlit run src/vector_map.py
 ```
 
 ## Reproducible Execution Interactions
-### Here are 3 seperate CLI executions of VectorVibe with inputs, outputs and Guardrail comments:
+### Here are 3 separate CLI executions of VectorVibe with inputs, outputs and Guardrail comments:
 Input: Songs for going to the beach
 
 CLI Output:
@@ -199,7 +199,7 @@ Pimplikeness - Morgan Wallen  [AI DJ (Gemini)]
 ```
 Input: Country songs for driving
 
-This is an example of the reliability/fallback features being engaged forcefully by removing the gemini API KEY. The other guardrail example is the tests/test_gemini_dj.py showing exactly what happens if gemini hallucinates a song that wasn't sent.
+This is an example of the reliability/fallback features being engaged forcefully by removing the Gemini API KEY. The other guardrail example is the tests/test_gemini_dj.py showing exactly what happens if gemini hallucinates a song that wasn't sent.
 
 CLI Output:
 ```Bash
@@ -236,10 +236,10 @@ Bitter - Palace  [closest match (AI DJ unavailable)]
 ```
 
 ## Design Decisions:
-The original project was very barebones, used made up data, and I had already had some ideas on making it more user-friendly and how to implement a larger/real song dataset. I originally planned on having the entire 500,000 real song dataset implemented in the semantic search, but upon further research and testing, it was a bit harder to work with such a large dataset in a project of this size. Since the data set is still relatively small as apposed to something like the entire spotify song collection, it's still not going to recommend the best songs for every search, but I believe after testing, that it does at least properly catagorize songs and matches what it has access to pretty well to the search query! So the biggest trade-off I made would be only importing 2,500 of the 500,000 song list, leading to less choices to apply to a given query and also with the time constraints of this project, I was not able to implement more search configuration, such as prefrences like acoustic vs electronic, or other specifics applied to the search.
+The original project was very barebones, used made up data, and I had already had some ideas on making it more user-friendly and how to implement a larger/real song dataset. I originally planned on having the entire 500,000 real song dataset implemented in the semantic search, but upon further research and testing, it was a bit harder to work with such a large dataset in a project of this size. Since the data set is still relatively small as opposed to something like the entire spotify song collection, it's still not going to recommend the best songs for every search, but I believe after testing, that it does at least properly categorize songs and matches what it has access to pretty well to the search query! So the biggest trade-off I made would be only importing 2,500 of the 500,000 song list, leading to less choices to apply to a given query and also with the time constraints of this project, I was not able to implement more search configuration, such as preferences like acoustic vs electronic, or other specifics applied to the search.
 
 ## Testing Summary:
-Initially I tried using a full 500,000 song dataset along with gemini embedding, however I soon found out that free versions of gemini have a quite low request per minute / request per day limit, and also that 500,000 songs is a lot more data than I initially thought. After some tests and questions to Claude, we settled on 2,500 songs spread accross 88 genres to get a decent sample size for embedding, and moved embedding to a local speciallized LLM that can embed the 2500 songs in under a minute. There is also a full pytest suite including testing the AI, the recommender, the embeddings, and even the deezer api interactions. The pytest suites also show off the guardrails put in place, in case Gemini hallucinates a song, the list of actual sent song ids is compared to the list gotten from gemini, and hallucinated songs or extra songs that were not asked for are removed from the list, so the user never sees fake songs.
+Initially I tried using a full 500,000 song dataset along with Gemini embedding, however I soon found out that free versions of Gemini have a quite low request per minute / request per day limit, and also that 500,000 songs is a lot more data than I initially thought. After some tests and questions to Claude, we settled on 2,500 songs spread across 88 genres to get a decent sample size for embedding, and moved embedding to a local specialized LLM that can embed the 2500 songs in under a minute. There is also a full pytest suite including testing the AI, the recommender, the embeddings, and even the deezer api interactions. The pytest suites also show off the guardrails put in place, in case Gemini hallucinates a song, the list of actual sent song ids is compared to the list gotten from gemini, and hallucinated songs or extra songs that were not asked for are removed from the list, so the user never sees fake songs.
 
 A run of the Gemini_DJ pytests. This tests the Guardrails and Reliability measures put into place to make sure that VectorVibe does not give a user Hallucinated data, and keeps the results reliable.
 ```Bash
